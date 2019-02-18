@@ -17,11 +17,15 @@ class Transform(object):
 
 
 class BSDS500(Dataset):
-    def __init__(self, path_to_datafolder='./DATASETS/BSDS500/BSDS500_Pois_crops/train/', transforms=None):
+    def __init__(self, path_to_datafolder='./DATASETS/BSDS500/BSDS500_Pois_crops/train/', num_images=None, transforms=None):
 
         self.transforms = transforms
         self.image_filenames = sorted(glob('{}gt/*.pth'.format(path_to_datafolder)))
         self.noisy_filenames = sorted(glob('{}noisy/*.pth'.format(path_to_datafolder)))
+
+        if num_images is not None:
+            self.image_filenames = self.image_filenames[:num_images]
+            self.noisy_filenames = self.noisy_filenames[:num_images]
 
     def __len__(self):
         return len(self.image_filenames)

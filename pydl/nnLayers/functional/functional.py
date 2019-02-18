@@ -1131,16 +1131,6 @@ class grbf_LUT(th.autograd.Function):
     @staticmethod
     def backward(ctx,grad_output):
 
-        # if (grad_output==th.Tensor([-float('Inf')]).cuda()).sum()>0:
-        #     print('GRBF_LUT grad_output has -Inf vals!!!')
-
-        #     save_path = './PoisDenoiser/networks/PoisNet/models/s1c8_wtf/'
-        #     savings = {'grad_output':grad_output} 
-
-        #     path2file = save_path+'grbf_output_ERROR.pth'
-        #     th.save(savings, path2file)            
-        #     return
-
         if ctx.needs_input_grad[0] and ctx.needs_input_grad[1]:
             centers, sigma, J = ctx.intermediate_results
         elif ctx.needs_input_grad[0]:
@@ -1169,19 +1159,7 @@ class grbf_LUT(th.autograd.Function):
             grad_weights = th.zeros(input.size(1),centers.numel()).type_as(input) 
             for m in range(0,centers.numel()):
                 tmp = th.exp(-0.5*(input.add(-centers[0,m]).div(sigma).pow(2)))
-                grad_weights[:,m] = tmp.mul(grad_output).sum(dim=0).sum(dim=1).sum(dim=1)
-            
-
-  
-        save_path = './PoisDenoiser/networks/PoisNet/models/s5c64_wtf/'
-        outs = list(np.load(save_path+'grbf_output.npy'))
-        ins = list(np.load(save_path+'grbf_input.npy'))
-
-        outs.append(th.norm(grad_output.detach().cpu()))
-        ins.append(th.norm(grad_input.detach().cpu()))
-
-        np.save(save_path+'grbf_output.npy', outs)
-        np.save(save_path+'grbf_input.npy', ins)    
+                grad_weights[:,m] = tmp.mul(grad_output).sum(dim=0).sum(dim=1).sum(dim=1) 
 
         return grad_input, grad_weights, None, None, None
 

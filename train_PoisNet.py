@@ -18,12 +18,12 @@ from training_procedure import training_procedure, initialize_network, load_mode
 th.manual_seed(1234)
 th.cuda.manual_seed(1234)
 
-gpu_id=1
+gpu_id=0
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_id)
 
-stages=5 ###################################################################
-output_features=64 #########################################################
+stages=1 ###################################################################
+output_features=8 #########################################################
 model = PoisNet(stages=stages, output_features=output_features).cuda()
 # optimizer = Adam(model.parameters(), lr=1e-2)
 
@@ -37,7 +37,7 @@ criterion = MSELoss().cuda()
 # criterion = PSNRLoss(max_val).cuda()
 
 path2dataset = './DATASETS/BSDS500_Pois_crops/'
-experiment_name = 's{}c{}_wtf'.format(stages, output_features)
+experiment_name = 's{}c{}'.format(stages, output_features)
 save_path = './PoisDenoiser/networks/PoisNet/models/'+experiment_name+'/'
 
 start_epoch = None ################################################################
@@ -45,16 +45,16 @@ start_epoch = None #############################################################
 initialize_network(model, optimizer, scheduler, save_path, start_epoch=start_epoch)
 
 
-np.save(save_path+'PoisProx_output.npy', [])
-np.save(save_path+'PoisProx_input.npy', [])
-np.save(save_path+'grbf_output.npy', [])
-np.save(save_path+'grbf_input.npy', [])
+# np.save(save_path+'PoisProx_output.npy', [])
+# np.save(save_path+'PoisProx_input.npy', [])
+# np.save(save_path+'grbf_output.npy', [])
+# np.save(save_path+'grbf_input.npy', [])
 
 
 train_batchsize=50 #############################################################
 val_batchsize=50   #############################################################
 
-BSDStrain = BSDS500(path2dataset+'train/')
+BSDStrain = BSDS500(path2dataset+'train/', num_images=400)
 BSDStrain_loader = DataLoader(BSDStrain, batch_size=train_batchsize, \
     shuffle=True, num_workers=0)
 

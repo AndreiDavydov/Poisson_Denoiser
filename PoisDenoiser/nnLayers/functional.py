@@ -9,15 +9,15 @@ class PoisProx(th.autograd.Function):
     Z = PoisProx(X, Y) computes the proximal map layer for the 
     indicator function:
 
-    Z = prox_IC(Y, A_cond){X} = 
+    Z = prox_IC(Y, a_cond){X} = 
 
     = argmin ||X-Z||^2     
-    s.t. 1^T*Z-Y^T*log(Z) <= exp(A_cond)( 1^T*Y-Y^T*log(Y) + ( # Y>0 )/2 ) 
+    s.t. 1^T*Z-Y^T*log(Z) <= exp(a_cond)*( 1^T*Y-Y^T*log(Y) + ( # Y>0 )/2 ) 
                                 
     = argmin ||Z-X||^2 + i_C(Y){Z}
         Z       
 
-    X, Y, Z are all tensors of size B x C x H x W. A_cond - scalar tensor.
+    X, Y, Z are all tensors of size B x C x H x W. a_cond - scalar tensor.
     '''
 
     @staticmethod
@@ -38,9 +38,12 @@ class PoisProx(th.autograd.Function):
 
         cond_mask = cond(input, noisy, a_cond=a_cond).view(batch_size, 1,1,1)
 
+        if input.min() < 0:
+            print('input has negative vals!!!')
+
         input_proj, root = proj(input, noisy, a_cond=a_cond, num_iters=num_iters) 
 
-        if ctx.needs_input_grad[0]:# or ctx.needs_input_grad[2]:
+        if ctx.needs_input_grad[0]:
             ctx.save_for_backward(input_proj, cond_mask, root, a_cond)
 
         return input_proj
@@ -55,17 +58,6 @@ class PoisProx(th.autograd.Function):
             grad_input = input_proj / root
             grad_input[cond_mask.expand_as(grad_input)] = 1
             grad_input.mul_(grad_output)
-
-
-        save_path = './PoisDenoiser/networks/PoisNet/models/s5c64_wtf/'
-        outs = list(np.load(save_path+'PoisProx_output.npy'))
-        ins = list(np.load(save_path+'PoisProx_input.npy'))
-
-        outs.append(th.norm(grad_output.detach().cpu()))
-        ins.append(th.norm(grad_input.detach().cpu()))
-
-        np.save(save_path+'PoisProx_output.npy', outs)
-        np.save(save_path+'PoisProx_input.npy', ins) 
 
         return grad_input, None, None #, grad_a_cond - too difficult to compute! 
                                       # Then one needs to form "newton" and "f" as autograd.Functions
