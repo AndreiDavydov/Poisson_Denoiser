@@ -237,27 +237,6 @@ class Pad_transpose2D(th.autograd.Function):
         if ctx.needs_input_grad[0]:
             grad_input = utils.pad2D(grad_output,pad,padType)
 
-        # if (grad_input==th.Tensor([-float('Inf')]).cuda()).sum()>0:
-        #     print('PadT grad_input has -Inf vals!!!')
-        #     save_path = './PoisDenoiser/networks/PoisNet/models/s1c8_wtf/'
-        #     savings = {'grad_output':grad_output,\
-        #                 'pad':pad,\
-        #                 'padType':padType} 
-
-        #     path2file = save_path+'padT_grad_input_ERROR.pth'
-        #     th.save(savings, path2file)  
-        #     return
-
-        # save_path = './PoisDenoiser/networks/PoisNet/models/s1c8_wtf/'
-        # savings = {'grad_output':grad_output,\
-        #             'pad':pad,\
-        #             'padType':padType} 
-
-        # path2file = save_path+'padT_grad_input_ERROR.pth'
-        # th.save(savings, path2file)  
-        #     # return
-
-            
         return grad_input, None, None
 
 class ZeroPad2D(th.autograd.Function):

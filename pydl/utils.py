@@ -1332,7 +1332,7 @@ def odctdict(n,L,dtype = 'f',GPU = False):
     
     D[:,0] = 1/math.sqrt(n)
     for k in range(1,L): 
-        v = th.cos(th.arange(0,n)*math.pi*k/L); 
+        v = th.cos((th.arange(0,n)*math.pi*k/L).type_as(D));  #############################################
         v -= v.mean();
         D[:,k] = v.div(v.norm(p=2))
     

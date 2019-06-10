@@ -1,0 +1,4 @@
+sudo openconnect vpn1.skoltech.ru
+ssh davydov@cig1-server.skoltech.ru
+
+python train_net.py -stages 5 --channels 64 --gpu_id 2 --num_images 100 --save_path_app "l2_100" --model_type "l2"

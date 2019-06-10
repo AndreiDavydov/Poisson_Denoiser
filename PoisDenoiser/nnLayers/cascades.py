@@ -1,6 +1,6 @@
 import torch as th
 from pydl.nnLayers.functional import functional as F
-from PoisDenoiser.nnLayers.functional import PoisProx
+from PoisDenoiser.nnLayers.functional import poisProx
 
 pad2D = F.Pad2D.apply
 pad_transpose2D = F.Pad_transpose2D.apply
@@ -9,16 +9,15 @@ grbf = F.grbf_LUT.apply
 conv2d = th.nn.functional.conv2d
 conv2d_t = th.nn.functional.conv_transpose2d
 
-poisProx = PoisProx.apply
 
-
-def resRBFPois_f(input, noisy, a_cond,\
+def resRBFPois_f(input, noisy,\
                   weights, weights_t,\
                   rbf_weights, rbf_centers, rbf_precision, data_lut,\
                   pad=0, padType='zero',\
                   alpha=None, alpha_t=None,\
                   normalizedWeights=False, zeroMeanWeights=False,\
-                  lb=-100, ub=100):
+                  lb=-100, ub=100,\
+                  prox_param=None):
     r""" residual layer with independent weights between the convolutional and 
     transpose convolutional layers."""
     
@@ -38,17 +37,20 @@ def resRBFPois_f(input, noisy, a_cond,\
     # conv_tranpose2d
     out = pad_transpose2D(conv2d_t(out,weights_t,bias = None,stride = 1),pad,padType)
     # Projection of the result, given the input of the network
-    out = poisProx(input-out, noisy, a_cond)
+    out = input - out
+    out = th.clamp(out, 1e-8, float('Inf'))
+    out = poisProx(out, noisy, prox_param)
 
     return out
 
-def resRBFPois_f_sw(input, noisy, a_cond,\
+def resRBFPois_f_sw(input, noisy,\
             weights,\
             rbf_weights, rbf_centers, rbf_precision, data_lut,\
             pad=0,padType='zero',\
             alpha=None, \
             normalizedWeights=False, zeroMeanWeights=False,\
-            lb=-100,ub=100):
+            lb=-100,ub=100,\
+            prox_param=None):
     r""" residual layer with shared weights between the convolutional and 
     transpose convolutional layers."""
     
@@ -64,6 +66,8 @@ def resRBFPois_f_sw(input, noisy, a_cond,\
     # conv_tranpose2d
     out = pad_transpose2D(conv2d_t(out,weights,bias = None,stride = 1),pad,padType)
     # Projection of the result, given the input of the network
-    out = poisProx(input-out, noisy, a_cond)
+    out = input - out
+    out = th.clamp(out, 1e-8, float('Inf'))
+    out = poisProx(out, noisy, prox_param)
 
     return out
